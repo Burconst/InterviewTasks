@@ -10,9 +10,8 @@ namespace ProxyServer
 {
     public sealed class ProxyServer : IDisposable
     {
-        private bool disposedValue;
-        private TcpListener tcpListener;
-        private List<Client> clients = new List<Client>();
+        private readonly TcpListener tcpListener;
+        private readonly List<Client> clients = new List<Client>();
         
         private void AddConnection(Client client) => clients.Add(client);
         private void RemoveConnection(Client client) => clients.Remove(client);
@@ -68,7 +67,7 @@ namespace ProxyServer
         {
             if (client is null) 
             {
-                throw new NullReferenceException("Client should be not null.");
+                throw new ArgumentNullException("Client should be not null.");
             }
             byte[] data = Encoding.Unicode.GetBytes(message+"\r\n");
             client.Stream.Write(data, 0, data.Length);
@@ -94,35 +93,15 @@ namespace ProxyServer
             }
         }
 
-        private void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    foreach (IDisposable client in clients)
-                    {
-                        if (client != null)
-                        {
-                            try
-                            {
-                                client.Dispose();
-                            }
-                            catch (Exception ex)
-                            {
-                                Log(ex.Message);
-                            }
-                        }
-                    }
-                }
-                disposedValue = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            foreach (IDisposable client in clients)
+            {
+                if (client != null)
+                {
+                    client.Dispose();
+                }
+            }
         }
 
     }

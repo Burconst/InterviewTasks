@@ -7,8 +7,8 @@ namespace ProxyServer
     public sealed class Client : IDisposable
     {
         internal NetworkStream Stream { get { return client.GetStream(); } }
-        TcpClient client;
-        ProxyServer server;
+        private readonly TcpClient client;
+        private readonly ProxyServer server;
 
         public Client(TcpClient tcpClient, ProxyServer server)
         {
@@ -23,21 +23,13 @@ namespace ProxyServer
                 string message = "";
                 while (true)
                 {
-                    try
+                    if (!reader.EndOfStream)
                     {
-                        if (!reader.EndOfStream)
-                        {
-                            message = reader.ReadLine();
-                            server.SendMessageFrom(this, message);
-                        }
-                        else 
-                        {
-                            break;
-                        }
+                        message = reader.ReadLine();
+                        server.SendMessageFrom(this, message);
                     }
-                    catch (Exception ex)
+                    else 
                     {
-                        Console.WriteLine(ex.Message);
                         break;
                     }
                 }
